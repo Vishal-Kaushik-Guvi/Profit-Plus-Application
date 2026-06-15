@@ -6,8 +6,12 @@ class Settings(BaseSettings):
     ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
 
+    SMTP_HOST: str
+    SMTP_PORT: int
+    SMTP_EMAIL: str
+    SMTP_PASSWORD: str
+
     class Config:
         env_file = ".env"
 
-# Create one instance — used everywhere in the app
 settings = Settings()

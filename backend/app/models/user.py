@@ -11,8 +11,8 @@ class User(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     
     # Basic Info
-    name = Column(String(100), nullable=False)
-    phone = Column(String(15), nullable=False, unique=True)
+    name = Column(String(100), nullable=True)
+    phone = Column(String(15), nullable=True, unique=True)
     email = Column(String(100), nullable=True, unique=True)
     password = Column(String(255), nullable=True)  # optional since OTP based
     

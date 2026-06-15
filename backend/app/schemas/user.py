@@ -1,35 +1,20 @@
 from pydantic import BaseModel, field_validator, EmailStr
 from typing import Optional
-import re
 
 # ── Request Schemas ──────────────────────────────────────────────
 
 class SendOtpRequest(BaseModel):
-    """Send OTP via phone OR email - client chooses delivery method"""
-    phone: Optional[str] = None
-    email: Optional[EmailStr] = None
+    """Send OTP via email"""
+    email: EmailStr
     purpose: str = "signup"  # "signup" or "login" or "reset_password"
-
-    @field_validator("phone")
-    def validate_phone(cls, v):
-        if v and not re.match(r"^\d{10}$", v):
-            raise ValueError("Phone must be 10 digits")
-        return v
-
-    @field_validator("email")
-    def check_one_provided(cls, v, info):
-        # Either phone or email must be provided - checked in service layer
-        return v
 
 
 class SignupRequest(BaseModel):
     """Complete signup - after OTP is verified"""
     name: str
-    phone: Optional[str] = None
-    email: Optional[EmailStr] = None
+    email: EmailStr
     password: str
     otp: str
-    otp_method: str  # "phone" or "email" - tells us which OTP field to check
 
     @field_validator("password")
     def password_strength(cls, v):
@@ -39,27 +24,20 @@ class SignupRequest(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    """Login with phone/email + password"""
-    identifier: str  # phone or email
+    """Login with email + password"""
+    email: EmailStr
     password: str
 
 
 class VerifyOtpRequest(BaseModel):
-    """Generic OTP verify - used for password reset etc"""
-    phone: Optional[str] = None
-    email: Optional[EmailStr] = None
+    email: EmailStr
     otp: str
-
-
-class RefreshTokenRequest(BaseModel):
-    phone: str
 
 # ── Response Schemas ─────────────────────────────────────────────
 
 class UserResponse(BaseModel):
     id: str
     name: Optional[str]
-    phone: Optional[str]
     email: Optional[str]
     is_verified: bool
     referral_code: Optional[str]

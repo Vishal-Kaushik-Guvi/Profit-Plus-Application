@@ -12,6 +12,7 @@ from app.schemas.user import (
     TokenResponse,
     UserResponse
 )
+from app.utils.email_service import send_otp_email
 import uuid
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -21,58 +22,51 @@ def generate_otp() -> str:
     return str(random.randint(100000, 999999))
 
 
-# ── Send OTP (Phone or Email) ──────────────────────────────────────
+# ── Send OTP ────────────────────────────────────────────────────────
 
 @router.post("/send-otp")
 def send_otp(request: SendOtpRequest, db: Session = Depends(get_db)):
     """
-    Sends OTP to either phone or email - whichever the user chose.
+    Sends OTP to email. Used for both signup and login verification.
     """
-    if not request.phone and not request.email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Either phone or email must be provided"
-        )
-
     otp = generate_otp()
     otp_expiry = datetime.utcnow() + timedelta(minutes=5)
 
-    if request.phone:
-        # Check if phone already registered (for signup flow)
-        existing = db.query(User).filter(User.phone == request.phone).first()
-        if existing and request.purpose == "signup":
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Phone number already registered"
-            )
+    existing = db.query(User).filter(User.email == request.email).first()
 
-        if existing:
-            existing.otp = otp
-            existing.otp_expiry = otp_expiry
-            db.commit()
-        # If new user — we don't create yet, OTP is verified at signup time
+    if existing and existing.is_verified and request.purpose == "signup":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered. Please log in instead."
+        )
 
-        print(f"[PHONE OTP] {request.phone}: {otp}")
+    if existing:
+        existing.email_otp = otp
+        existing.email_otp_expiry = otp_expiry
+        user_name = existing.name or "there"
+    else:
+        existing = User(
+            id=uuid.uuid4(),
+            email=request.email,
+            email_otp=otp,
+            email_otp_expiry=otp_expiry,
+            is_verified=False
+        )
+        db.add(existing)
+        user_name = "there"
 
-    else:  # email
-        existing = db.query(User).filter(User.email == request.email).first()
-        if existing and request.purpose == "signup":
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already registered"
-            )
+    db.commit()
 
-        if existing:
-            existing.email_otp = otp
-            existing.email_otp_expiry = otp_expiry
-            db.commit()
+    # Send actual email
+    email_sent = send_otp_email(request.email, otp, user_name)
 
-        print(f"[EMAIL OTP] {request.email}: {otp}")
+    if not email_sent:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to send OTP email. Please try again."
+        )
 
-    return {
-        "message": "OTP sent successfully",
-        "otp": otp  # remove in production!
-    }
+    return {"message": "OTP sent to your email successfully"}
 
 
 # ── Signup ──────────────────────────────────────────────────────────
@@ -80,95 +74,60 @@ def send_otp(request: SendOtpRequest, db: Session = Depends(get_db)):
 @router.post("/signup", response_model=TokenResponse)
 def signup(request: SignupRequest, db: Session = Depends(get_db)):
     """
-    Complete signup with name, phone/email, password + OTP verification.
+    Complete signup with name, email, password + OTP verification.
     """
-    if not request.phone and not request.email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Either phone or email must be provided"
-        )
+    existing = db.query(User).filter(User.email == request.email).first()
 
-    # Check for existing user
-    if request.phone:
-        existing = db.query(User).filter(User.phone == request.phone).first()
-    else:
-        existing = db.query(User).filter(User.email == request.email).first()
-
-    # ── OTP Verification ──────────────────────────────────────────
-    # For brand new signups, OTP was sent but no user record exists yet
-    # We need a temporary store — simplest fix: allow OTP check against
-    # a freshly created (unverified) user record
-
-    if existing:
-        # User record exists (OTP was sent to existing record)
-        if request.otp_method == "phone":
-            if existing.otp != request.otp:
-                raise HTTPException(status_code=400, detail="Invalid OTP")
-            if datetime.utcnow() > existing.otp_expiry:
-                raise HTTPException(status_code=400, detail="OTP expired")
-        else:  # email
-            if existing.email_otp != request.otp:
-                raise HTTPException(status_code=400, detail="Invalid OTP")
-            if datetime.utcnow() > existing.email_otp_expiry:
-                raise HTTPException(status_code=400, detail="OTP expired")
-
-        user = existing
-    else:
-        # Brand new user - no OTP record exists to check against
-        # In this flow, /send-otp should have created a placeholder record
+    if not existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Please request an OTP first"
         )
 
-    # ── Update user with signup details ─────────────────────────────
-    user.name = request.name
-    user.password = hash_password(request.password)
-    user.is_verified = True
+    # Verify OTP
+    if existing.email_otp != request.otp:
+        raise HTTPException(status_code=400, detail="Invalid OTP")
 
-    if request.phone:
-        user.phone = request.phone
-        user.otp = None
-        user.otp_expiry = None
-    if request.email:
-        user.email = request.email
-        user.is_email_verified = True
-        user.email_otp = None
-        user.email_otp_expiry = None
+    if datetime.utcnow() > existing.email_otp_expiry:
+        raise HTTPException(status_code=400, detail="OTP expired. Please request a new one")
 
-    if not user.referral_code:
-        user.referral_code = str(uuid.uuid4())[:8].upper()
+    # Update user
+    existing.name = request.name
+    existing.password = hash_password(request.password)
+    existing.is_verified = True
+    existing.is_email_verified = True
+    existing.email_otp = None
+    existing.email_otp_expiry = None
+
+    if not existing.referral_code:
+        existing.referral_code = str(uuid.uuid4())[:8].upper()
 
     db.commit()
-    db.refresh(user)
+    db.refresh(existing)
 
-    access_token = create_access_token(data={"sub": str(user.id)})
+    access_token = create_access_token(data={"sub": str(existing.id)})
 
     return TokenResponse(
         access_token=access_token,
         token_type="bearer",
         user=UserResponse(
-            id=str(user.id),
-            name=user.name,
-            phone=user.phone,
-            email=user.email,
-            is_verified=user.is_verified,
-            referral_code=user.referral_code
+            id=str(existing.id),
+            name=existing.name,
+            email=existing.email,
+            is_verified=existing.is_verified,
+            referral_code=existing.referral_code
         )
     )
 
 
-# ── Login (Password based) ────────────────────────────────────────
+# ── Login ───────────────────────────────────────────────────────────
 
 @router.post("/login", response_model=TokenResponse)
 def login(request: LoginRequest, db: Session = Depends(get_db)):
     """
-    Login with phone or email + password.
+    Login with email + password.
     """
-    # Find user by phone or email
-    user = db.query(User).filter(
-        (User.phone == request.identifier) | (User.email == request.identifier)
-    ).first()
+    user = db.query(User).filter(User.email == request.email).first()
 
     if not user or not user.password:
         raise HTTPException(
@@ -190,7 +149,6 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         user=UserResponse(
             id=str(user.id),
             name=user.name,
-            phone=user.phone,
             email=user.email,
             is_verified=user.is_verified,
             referral_code=user.referral_code
@@ -205,7 +163,6 @@ def get_me(current_user: User = Depends(get_current_user)):
     return UserResponse(
         id=str(current_user.id),
         name=current_user.name,
-        phone=current_user.phone,
         email=current_user.email,
         is_verified=current_user.is_verified,
         referral_code=current_user.referral_code
