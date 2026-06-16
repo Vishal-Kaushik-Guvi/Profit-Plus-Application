@@ -54,14 +54,14 @@ class ApiClient:
         )
         return response.json(), response.status_code
 
-    def login(self, identifier: str, password: str):
-        """POST /auth/login - identifier = phone or email"""
-        response = requests.post(
-            f"{BASE_URL}/auth/login",
-            json={"identifier": identifier, "password": password},
-            headers=self._headers()
-        )
-        return response.json(), response.status_code
+def login(self, email: str, password: str):
+    """POST /auth/login"""
+    response = requests.post(
+        f"{BASE_URL}/auth/login",
+        json={"email": email, "password": password},
+        headers=self._headers()
+    )
+    return response.json(), response.status_code
 
     def get_me(self):
         """GET /auth/me"""
