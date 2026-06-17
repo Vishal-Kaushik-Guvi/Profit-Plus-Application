@@ -2,6 +2,7 @@ import requests
 
 BASE_URL = "http://127.0.0.1:8000"
 
+
 class ApiClient:
 
     def __init__(self):
@@ -18,13 +19,10 @@ class ApiClient:
 
     # ── Auth Endpoints ──────────────────────────────────────────────
 
-    def send_otp(self, phone: str = None, email: str = None, purpose: str = "signup"):
-        """POST /auth/send-otp - phone OR email"""
+    def send_otp(self, email: str, purpose: str = "signup"):
+        """POST /auth/send-otp"""
         payload = {"purpose": purpose}
-        if phone:
-            payload["phone"] = phone
-        if email:
-            payload["email"] = email
+        payload["email"] = email
 
         response = requests.post(
             f"{BASE_URL}/auth/send-otp",
@@ -33,19 +31,15 @@ class ApiClient:
         )
         return response.json(), response.status_code
 
-    def signup(self, name: str, password: str, otp: str, otp_method: str,
-               phone: str = None, email: str = None):
+    def signup(self, name: str, phone: str, email: str, password: str, otp: str):
         """POST /auth/signup"""
         payload = {
             "name": name,
+            "phone": phone,
+            "email": email,
             "password": password,
-            "otp": otp,
-            "otp_method": otp_method
+            "otp": otp
         }
-        if phone:
-            payload["phone"] = phone
-        if email:
-            payload["email"] = email
 
         response = requests.post(
             f"{BASE_URL}/auth/signup",
@@ -54,19 +48,19 @@ class ApiClient:
         )
         return response.json(), response.status_code
 
-def login(self, email: str, password: str):
-    """POST /auth/login"""
-    response = requests.post(
-        f"{BASE_URL}/auth/login",
-        json={"email": email, "password": password},
-        headers=self._headers()
-    )
-    return response.json(), response.status_code
-
     def get_me(self):
         """GET /auth/me"""
         response = requests.get(
             f"{BASE_URL}/auth/me",
+            headers=self._headers()
+        )
+        return response.json(), response.status_code
+
+    def login(self, email: str, password: str):
+        """POST /auth/login"""
+        response = requests.post(
+            f"{BASE_URL}/auth/login",
+            json={"email": email, "password": password},
             headers=self._headers()
         )
         return response.json(), response.status_code

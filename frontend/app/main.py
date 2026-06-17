@@ -7,9 +7,9 @@ def main(page: ft.Page):
     page.title = "Profit Plus"
     page.theme_mode = ft.ThemeMode.DARK
     page.padding = 0
-    page.window_width = 1200
-    page.window_height = 700
-    page.window_center()
+    page.window.width = 1200
+    page.window.height = 700
+    page.window.center()
 
     def route_change(e):
         page.views.clear()

@@ -12,6 +12,7 @@ class SendOtpRequest(BaseModel):
 class SignupRequest(BaseModel):
     """Complete signup - after OTP is verified"""
     name: str
+    phone: Optional[str] = None
     email: EmailStr
     password: str
     otp: str
@@ -20,6 +21,12 @@ class SignupRequest(BaseModel):
     def password_strength(cls, v):
         if len(v) < 6:
             raise ValueError("Password must be at least 6 characters")
+        return v
+
+    @field_validator("phone")
+    def phone_number(cls, v):
+        if v is not None and len(v) != 10:
+            raise ValueError("Phone number must be 10 digits")
         return v
 
 

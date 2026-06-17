@@ -91,8 +91,14 @@ def signup(request: SignupRequest, db: Session = Depends(get_db)):
     if datetime.utcnow() > existing.email_otp_expiry:
         raise HTTPException(status_code=400, detail="OTP expired. Please request a new one")
 
+    if request.phone:
+        phone_owner = db.query(User).filter(User.phone == request.phone, User.id != existing.id).first()
+        if phone_owner:
+            raise HTTPException(status_code=400, detail="Phone number already registered")
+
     # Update user
     existing.name = request.name
+    existing.phone = request.phone
     existing.password = hash_password(request.password)
     existing.is_verified = True
     existing.is_email_verified = True

@@ -21,24 +21,24 @@ def HomeView(page: ft.Page):
             # Base dark layer
             ft.Container(
                 expand=True,
-                bgcolor="#06060c",
+                bgcolor="white",
             ),
-            # Purple glow — top left
+            # Purple glow — top left (fades to background color, not transparent)
             ft.Container(
                 width=500, height=500,
                 left=-150, top=-150,
                 border_radius=500,
                 gradient=ft.RadialGradient(
-                    colors=["#3c1e6e55", "#00000000"]
+                    colors=["#3c1e6e", "#06060c"]
                 ),
             ),
-            # Cyan glow — right side
+            # Cyan glow — right side (fades to background color, not transparent)
             ft.Container(
                 width=600, height=600,
                 right=-200, top=100,
                 border_radius=600,
                 gradient=ft.RadialGradient(
-                    colors=["#0a3a4255", "#00000000"]
+                    colors=["#0a3a42", "#06060c"]
                 ),
             ),
         ]
@@ -58,7 +58,7 @@ def HomeView(page: ft.Page):
                             border_radius=10,
                             bgcolor=Colors.PRIMARY,
                             alignment=ft.Alignment(0, 0),
-                            content=ft.Icon(ft.icons.BOLT_ROUNDED, color="white", size=18)
+                            content=ft.Icon(ft.Icons.BOLT_ROUNDED, color="white", size=18)
                         ),
                         ft.Text("Profit Plus", size=18, weight=ft.FontWeight.BOLD, color="white"),
                     ]
@@ -94,8 +94,8 @@ def HomeView(page: ft.Page):
             spacing=18,
             controls=[
                 ft.Container(
-                    ft.Text("BUILT FOR SMALL RETAIL SHOPS", size=11,
-        color=Colors.SECONDARY, weight=ft.FontWeight.W_600),
+                    content=ft.Text("BUILT FOR SMALL RETAIL SHOPS", size=11,
+                                     color=Colors.SECONDARY, weight=ft.FontWeight.W_600),
                     padding=ft.padding.symmetric(horizontal=16, vertical=8),
                     border_radius=30,
                     bgcolor="#0d1f26",
@@ -137,7 +137,7 @@ def HomeView(page: ft.Page):
                                 spacing=8, tight=True,
                                 controls=[
                                     ft.Text("Start free trial", color="white", size=14, weight=ft.FontWeight.W_600),
-                                    ft.Icon(ft.icons.ARROW_FORWARD_ROUNDED, color="white", size=16),
+                                    ft.Icon(ft.Icons.ARROW_FORWARD_ROUNDED, color="white", size=16),
                                 ]
                             ),
                             bgcolor=Colors.PRIMARY,
@@ -226,22 +226,22 @@ def HomeView(page: ft.Page):
         )
 
     features_header = ft.Column(
-    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-    spacing=10,
-    controls=[
-        ft.Text("Everything, in sync.", size=30, weight=ft.FontWeight.BOLD,
-                color="white", text_align=ft.TextAlign.CENTER),
-        ft.Container(
-            width=480,
-            alignment=ft.alignment.center,
-            content=ft.Text(
-                "From the counter to the back office — one system "
-                "keeps your stock, sales and customer accounts aligned.",
-                size=14, color=Colors.TEXT_SECONDARY, text_align=ft.TextAlign.CENTER
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+        spacing=10,
+        controls=[
+            ft.Text("Everything, in sync.", size=30, weight=ft.FontWeight.BOLD,
+                    color="white", text_align=ft.TextAlign.CENTER),
+            ft.Container(
+                width=480,
+                alignment=ft.Alignment(0, 0),
+                content=ft.Text(
+                    "From the counter to the back office — one system "
+                    "keeps your stock, sales and customer accounts aligned.",
+                    size=14, color=Colors.TEXT_SECONDARY, text_align=ft.TextAlign.CENTER
+                )
             )
-        )
-    ]
-)
+        ]
+    )
 
     features_grid = ft.Row(
         wrap=True,
@@ -249,37 +249,37 @@ def HomeView(page: ft.Page):
         spacing=20, run_spacing=20,
         controls=[
             feature_card(
-                ft.icons.RECEIPT_LONG_ROUNDED, "#1c1530", Colors.PRIMARY_LIGHT,
+                ft.Icons.RECEIPT_LONG_ROUNDED, "#1c1530", Colors.PRIMARY_LIGHT,
                 "Fast billing",
                 "Create GST-ready invoices in seconds with automatic "
                 "tax calculation and stock deduction."
             ),
             feature_card(
-                ft.icons.INVENTORY_2_ROUNDED, "#0d2330", Colors.SECONDARY,
+                ft.Icons.INVENTORY_2_ROUNDED, "#0d2330", Colors.SECONDARY,
                 "Live inventory",
                 "Get low-stock alerts, track batches and expiry dates, "
                 "and manage variants by size and color."
             ),
             feature_card(
-                ft.icons.ACCOUNT_BALANCE_WALLET_ROUNDED, "#1f2316", Colors.SUCCESS,
+                ft.Icons.ACCOUNT_BALANCE_WALLET_ROUNDED, "#1f2316", Colors.SUCCESS,
                 "EMI tracking",
                 "Convert sales into structured EMI plans with automatic "
                 "interest calculation and due-date reminders."
             ),
             feature_card(
-                ft.icons.PEOPLE_ALT_ROUNDED, "#241319", "#f87171",
+                ft.Icons.PEOPLE_ALT_ROUNDED, "#241319", "#f87171",
                 "Customer ledger",
                 "Keep a running history of every customer's purchases, "
                 "dues and payments in one place."
             ),
             feature_card(
-                ft.icons.BAR_CHART_ROUNDED, "#1a2030", "#60a5fa",
+                ft.Icons.BAR_CHART_ROUNDED, "#1a2030", "#60a5fa",
                 "Profit analytics",
                 "See daily and monthly profit, best-selling products "
                 "and slow-moving stock at a glance."
             ),
             feature_card(
-                ft.icons.SHIELD_ROUNDED, "#241c10", Colors.WARNING,
+                ft.Icons.SHIELD_ROUNDED, "#241c10", Colors.WARNING,
                 "Secure by design",
                 "OTP-based login and encrypted data keep your "
                 "business information safe."
@@ -339,19 +339,19 @@ def HomeView(page: ft.Page):
 
     # ── Page assembly ────────────────────────────────────────────────
     content_column = ft.Column(
-    horizontal_alignment=ft.CrossAxisAlignment.CENTER,  # 👈 add this
-    controls=[
-        navbar,
-        hero,
-        stats_strip,
-        ft.Container(height=70),
-        features_header,
-        ft.Container(height=30),
-        features_grid,
-        cta_banner,
-        footer,
-    ]
-)
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+        controls=[
+            navbar,
+            hero,
+            stats_strip,
+            ft.Container(height=70),
+            features_header,
+            ft.Container(height=30),
+            features_grid,
+            cta_banner,
+            footer,
+        ]
+    )
 
     return ft.View(
         route="/",
