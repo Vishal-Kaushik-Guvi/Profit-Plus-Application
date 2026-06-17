@@ -208,8 +208,7 @@ def SignupView(page: ft.Page):
             return
 
         if status_code == 200:
-            api_client.set_token(data["access_token"])
-            page.go("/businesses")
+            page.go("/login")
             return
 
         error_text.value = data.get("detail", "Signup failed")

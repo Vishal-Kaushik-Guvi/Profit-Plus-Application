@@ -1,23 +1,23 @@
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+import bcrypt
 from app.config import settings
 
 # Password hashing setup
 # In Java → new BCryptPasswordEncoder()
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # ── Password Functions ──────────────────────────────────────────────
 
 def hash_password(password: str) -> str:
     """Convert plain password to hashed password"""
     # In Java → passwordEncoder.encode(password)
-    return pwd_context.hash(password)
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Check if entered password matches stored hash"""
     # In Java → passwordEncoder.matches(plain, hashed)
-    return pwd_context.verify(plain_password, hashed_password)
+    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
 
 # ── JWT Functions ───────────────────────────────────────────────────
 

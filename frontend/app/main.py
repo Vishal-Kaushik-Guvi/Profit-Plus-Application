@@ -1,7 +1,11 @@
 import flet as ft
+
+from app.api_client import api_client
 from app.views.home_view import HomeView
+from app.views.login_view import LoginView
+from app.views.mybusiness_view import MyBusinessView
 from app.views.signup_view import SignupView
-from app.views.login_view import LoginView  # 👈 add this
+
 
 def main(page: ft.Page):
     page.title = "Profit Plus"
@@ -17,17 +21,24 @@ def main(page: ft.Page):
         if page.route == "/":
             page.views.append(HomeView(page))
         elif page.route == "/login":
-            page.views.append(LoginView(page))  # 👈 replace placeholder
+            page.views.append(LoginView(page))
         elif page.route == "/signup":
             page.views.append(SignupView(page))
         elif page.route == "/businesses":
-            page.views.append(
-                ft.View("/businesses", [ft.Text("My Businesses - Coming Next", size=30, color="white")])
-            )
+            if not api_client.token:
+                page.go("/login")
+                return
+            page.views.append(MyBusinessView(page))
         elif page.route == "/forgot-password":
             page.views.append(
-                ft.View("/forgot-password", [ft.Text("Forgot Password - Coming Soon", size=30, color="white")])
+                ft.View(
+                    "/forgot-password",
+                    [ft.Text("Forgot Password - Coming Soon", size=30, color="white")],
+                )
             )
+        else:
+            page.go("/")
+            return
 
         page.update()
 
@@ -41,6 +52,7 @@ def main(page: ft.Page):
 
     route_change(None)
     page.update()
+
 
 if __name__ == "__main__":
     ft.app(target=main)

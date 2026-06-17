@@ -65,5 +65,35 @@ class ApiClient:
         )
         return response.json(), response.status_code
 
+    def get_my_businesses(self):
+        """GET /business/my-businesses"""
+        response = requests.get(
+            f"{BASE_URL}/business/my-businesses",
+            headers=self._headers()
+        )
+        return response.json(), response.status_code
+
+    def create_business(self, business_name: str, phone: str = "", email: str = "",
+                        address: str = "", city: str = "", pincode: str = "",
+                        state: str = "", country: str = "", gst: str = ""):
+        """POST /business/register"""
+        payload = {
+            "business_name": business_name,
+            "phone": phone or None,
+            "email": email or None,
+            "address": address or None,
+            "city": city or None,
+            "pincode": pincode or None,
+            "state": state or None,
+            "country": country or None,
+            "gst": gst or None,
+        }
+        response = requests.post(
+            f"{BASE_URL}/business/register",
+            json=payload,
+            headers=self._headers()
+        )
+        return response.json(), response.status_code
+
 
 api_client = ApiClient()
