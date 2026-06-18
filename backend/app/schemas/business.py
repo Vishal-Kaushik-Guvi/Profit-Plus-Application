@@ -1,6 +1,8 @@
 from pydantic import BaseModel
+from datetime import datetime
 from typing import Optional
 from enum import Enum
+from uuid import UUID
 
 class SubType(str, Enum):
     PRO = "PRO"
@@ -56,22 +58,26 @@ class BusinessUpdateRequest(BaseModel):
 
 class BusinessResponse(BaseModel):
     """What server sends back"""
-    id: str
+    id: UUID
     business_name: str
     phone: Optional[str]
     email: Optional[str]
     address: Optional[str]
     city: Optional[str]
+    pincode: Optional[str]
     state: Optional[str]
+    country: Optional[str]
     gst: Optional[str]
     gst_verified: bool
     subscription_type: str
+    subscription_expiry: Optional[datetime]
     logo_url: Optional[str]
     bank_name: Optional[str]
     account_number: Optional[str]
     ifsc_code: Optional[str]
     branch_name: Optional[str]
-    owner_id: str
+    owner_id: UUID
+    created_at: datetime
 
     class Config:
         from_attributes = True

@@ -17,6 +17,14 @@ class ApiClient:
             headers["Authorization"] = f"Bearer {self.token}"
         return headers
 
+    @staticmethod
+    def _result(response):
+        try:
+            return response.json(), response.status_code
+        except requests.exceptions.JSONDecodeError:
+            message = response.text.strip() or "Server returned an invalid response"
+            return {"detail": message}, response.status_code
+
     # ── Auth Endpoints ──────────────────────────────────────────────
 
     def send_otp(self, email: str, purpose: str = "signup"):
@@ -29,7 +37,7 @@ class ApiClient:
             json=payload,
             headers=self._headers()
         )
-        return response.json(), response.status_code
+        return self._result(response)
 
     def signup(self, name: str, phone: str, email: str, password: str, otp: str):
         """POST /auth/signup"""
@@ -46,7 +54,7 @@ class ApiClient:
             json=payload,
             headers=self._headers()
         )
-        return response.json(), response.status_code
+        return self._result(response)
 
     def get_me(self):
         """GET /auth/me"""
@@ -54,7 +62,7 @@ class ApiClient:
             f"{BASE_URL}/auth/me",
             headers=self._headers()
         )
-        return response.json(), response.status_code
+        return self._result(response)
 
     def login(self, email: str, password: str):
         """POST /auth/login"""
@@ -63,7 +71,7 @@ class ApiClient:
             json={"email": email, "password": password},
             headers=self._headers()
         )
-        return response.json(), response.status_code
+        return self._result(response)
 
     def get_my_businesses(self):
         """GET /business/my-businesses"""
@@ -71,11 +79,20 @@ class ApiClient:
             f"{BASE_URL}/business/my-businesses",
             headers=self._headers()
         )
-        return response.json(), response.status_code
+        return self._result(response)
+
+    def get_business(self, business_id: str):
+        """GET /business/{business_id}"""
+        response = requests.get(
+            f"{BASE_URL}/business/{business_id}",
+            headers=self._headers()
+        )
+        return self._result(response)
 
     def create_business(self, business_name: str, phone: str = "", email: str = "",
                         address: str = "", city: str = "", pincode: str = "",
-                        state: str = "", country: str = "", gst: str = ""):
+                        state: str = "", country: str = "", gst: str = "",
+                        referred_by_code: str = ""):
         """POST /business/register"""
         payload = {
             "business_name": business_name,
@@ -87,13 +104,14 @@ class ApiClient:
             "state": state or None,
             "country": country or None,
             "gst": gst or None,
+            "referred_by_code": referred_by_code or None,
         }
         response = requests.post(
             f"{BASE_URL}/business/register",
             json=payload,
             headers=self._headers()
         )
-        return response.json(), response.status_code
+        return self._result(response)
 
 
 api_client = ApiClient()

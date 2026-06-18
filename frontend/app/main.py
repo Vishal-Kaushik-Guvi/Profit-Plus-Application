@@ -3,6 +3,8 @@ import flet as ft
 from app.api_client import api_client
 from app.views.home_view import HomeView
 from app.views.login_view import LoginView
+from app.views.createbusiness_view import CreateBusinessView
+from app.views.business_dashboard_view import BusinessDashboardView
 from app.views.mybusiness_view import MyBusinessView
 from app.views.signup_view import SignupView
 
@@ -29,6 +31,17 @@ def main(page: ft.Page):
                 page.go("/login")
                 return
             page.views.append(MyBusinessView(page))
+        elif page.route == "/businesses/create":
+            if not api_client.token:
+                page.go("/login")
+                return
+            page.views.append(CreateBusinessView(page))
+        elif page.route.startswith("/businesses/") and page.route.endswith("/dashboard"):
+            if not api_client.token:
+                page.go("/login")
+                return
+            business_id = page.route.split("/")[2]
+            page.views.append(BusinessDashboardView(page, business_id))
         elif page.route == "/forgot-password":
             page.views.append(
                 ft.View(
