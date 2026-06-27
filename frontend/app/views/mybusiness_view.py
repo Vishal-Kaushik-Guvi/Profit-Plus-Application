@@ -1,9 +1,13 @@
 from datetime import datetime
 
 import flet as ft
+import threading
+import time
+import random
 
 from app.api_client import api_client
 from app.theme import Colors
+
 
 
 BG = "#030711"

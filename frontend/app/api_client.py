@@ -18,6 +18,36 @@ class ApiClient:
             headers["Authorization"] = f"Bearer {self.token}"
         return headers
     
+    def create_product(self, business_id, product_name, category="",
+                       brand="", description="", hsn_code="",
+                       tax_percentage=0.0, color="", size="",
+                       business_type=""):
+        response = requests.post(
+            f"{BASE_URL}/product/create",
+            json={
+                "business_id": business_id,
+                "product_name": product_name,
+                "category": category,
+                "brand": brand,
+                "description": description,
+                "hsn_code": hsn_code,
+                "tax_percentage": tax_percentage,
+                "color": color,
+                "size": size,
+                "business_type": business_type,
+            },
+            headers=self._headers()
+    )
+        return response.json(), response.status_code
+
+
+    def get_products(self, business_id: str):
+        response = requests.get(
+            f"{BASE_URL}/product/{business_id}",
+            headers=self._headers()
+        )
+        return response.json(), response.status_code
+    
 
 
     @staticmethod

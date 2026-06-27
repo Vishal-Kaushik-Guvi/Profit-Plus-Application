@@ -8,6 +8,8 @@ from app.views.createbusiness_view import CreateBusinessView
 from app.views.business_dashboard_view import BusinessDashboardView
 from app.views.mybusiness_view import MyBusinessView
 from app.views.signup_view import SignupView
+from app.views.product_view import ProductsView
+from app.views.addproduct_view import AddProductView
 
 
 def main(page: ft.Page):
@@ -15,7 +17,7 @@ def main(page: ft.Page):
     page.theme_mode = ft.ThemeMode.DARK
     page.padding = 0
     page.window.width = 1200
-    page.window.height = 700
+    page.window.height = 600
     page.window.center()
 
     def route_change(e):
@@ -52,6 +54,43 @@ def main(page: ft.Page):
             business_id = page.route.split("/")[2]
             page.views.append(BusinessDashboardView(page, business_id))
 
+        elif page.route.startswith("/businesses/") and "/products" in page.route:
+            if not api_client.token:
+                page.go("/login")
+                return
+            parts = page.route.split("/")
+            business_id = parts[2]
+
+            if page.route.endswith("/products"):
+                # /businesses/{id}/products
+                page.views.append(ProductsView(page, business_id))
+
+            elif page.route.endswith("/products/add"):
+                # /businesses/{id}/products/add
+                page.views.append(AddProductView(page, business_id))
+
+            elif len(parts) >= 6 and parts[5] == "inventory":
+                # /businesses/{id}/products/{product_id}/inventory
+                product_id = parts[4]
+                page.views.append(ft.View(
+                    page.route,
+                    [ft.Text("Restock Inventory — Coming Soon",
+                             color="white", size=24)]
+                ))
+
+            elif len(parts) >= 6 and parts[5] == "edit":
+                # /businesses/{id}/products/{product_id}/edit
+                product_id = parts[4]
+                page.views.append(ft.View(
+                    page.route,
+                    [ft.Text("Edit Product — Coming Soon",
+                             color="white", size=24)]
+                ))
+
+            else:
+                page.go(f"/businesses/{business_id}/products")
+                return
+
         elif page.route.startswith("/businesses/") and "/billing" in page.route:
             if not api_client.token:
                 page.go("/login")
@@ -62,26 +101,6 @@ def main(page: ft.Page):
                 [ft.Text("Billing — Coming Soon", color="white", size=24)]
             ))
 
-        elif page.route.startswith("/businesses/") and "/products" in page.route:
-            if not api_client.token:
-                page.go("/login")
-                return
-            business_id = page.route.split("/")[2]
-            page.views.append(ft.View(
-                page.route,
-                [ft.Text("Products — Coming Soon", color="white", size=24)]
-            ))
-
-        elif page.route.startswith("/businesses/") and "/inventory" in page.route:
-            if not api_client.token:
-                page.go("/login")
-                return
-            business_id = page.route.split("/")[2]
-            page.views.append(ft.View(
-                page.route,
-                [ft.Text("Inventory — Coming Soon", color="white", size=24)]
-            ))
-
         elif page.route.startswith("/businesses/") and "/emi" in page.route:
             if not api_client.token:
                 page.go("/login")
@@ -89,7 +108,8 @@ def main(page: ft.Page):
             business_id = page.route.split("/")[2]
             page.views.append(ft.View(
                 page.route,
-                [ft.Text("EMI Management — Coming Soon", color="white", size=24)]
+                [ft.Text("EMI Management — Coming Soon",
+                         color="white", size=24)]
             ))
 
         elif page.route.startswith("/businesses/") and "/sales" in page.route:
@@ -99,7 +119,8 @@ def main(page: ft.Page):
             business_id = page.route.split("/")[2]
             page.views.append(ft.View(
                 page.route,
-                [ft.Text("Sales History — Coming Soon", color="white", size=24)]
+                [ft.Text("Sales History — Coming Soon",
+                         color="white", size=24)]
             ))
 
         elif page.route.startswith("/businesses/") and "/analytics" in page.route:
@@ -122,16 +143,6 @@ def main(page: ft.Page):
                 [ft.Text("Customers — Coming Soon", color="white", size=24)]
             ))
 
-        elif page.route.startswith("/businesses/") and "/taxation" in page.route:
-            if not api_client.token:
-                page.go("/login")
-                return
-            business_id = page.route.split("/")[2]
-            page.views.append(ft.View(
-                page.route,
-                [ft.Text("Taxation — Coming Soon", color="white", size=24)]
-            ))
-
         elif page.route.startswith("/businesses/") and "/subscription" in page.route:
             if not api_client.token:
                 page.go("/login")
@@ -139,7 +150,8 @@ def main(page: ft.Page):
             business_id = page.route.split("/")[2]
             page.views.append(ft.View(
                 page.route,
-                [ft.Text("Subscription — Coming Soon", color="white", size=24)]
+                [ft.Text("Subscription — Coming Soon",
+                         color="white", size=24)]
             ))
 
         else:

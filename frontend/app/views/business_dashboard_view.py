@@ -1,4 +1,7 @@
 import flet as ft
+import threading
+import time
+import random
 from app.api_client import api_client
 
 BG = "#020710"
@@ -20,29 +23,29 @@ def BusinessDashboardView(page: ft.Page, business_id: str):
     )
     error_text = ft.Text("", color="#fb7185", size=12)
 
-    # ── Metric value refs (updated after data loads) ──────────────
+    # ── Metric value refs ─────────────────────────────────────────
     gross_sales_val = ft.Text("₹0.00", color="white", size=24,
-                               weight=ft.FontWeight.BOLD)
+                              weight=ft.FontWeight.BOLD)
     cash_val = ft.Text("₹0.00", color="white", size=24,
-                        weight=ft.FontWeight.BOLD)
+                       weight=ft.FontWeight.BOLD)
     profit_val = ft.Text("₹0.00", color="white", size=24,
-                          weight=ft.FontWeight.BOLD)
+                         weight=ft.FontWeight.BOLD)
     margin_badge_val = ft.Text("0% ACCRUED MARGIN", color=CYAN,
-                                size=8, weight=ft.FontWeight.BOLD)
+                               size=8, weight=ft.FontWeight.BOLD)
     emi_received_val = ft.Text("₹0.00", color="white", size=24,
-                                weight=ft.FontWeight.BOLD)
+                               weight=ft.FontWeight.BOLD)
     emi_due_val = ft.Text("₹0.00", color="white", size=24,
-                           weight=ft.FontWeight.BOLD)
+                          weight=ft.FontWeight.BOLD)
     emi_due_badge_val = ft.Text("ALL CLEAR", color="#7d899e",
-                                 size=8, weight=ft.FontWeight.BOLD)
+                                size=8, weight=ft.FontWeight.BOLD)
 
     # GST values
     output_gst_val = ft.Text("₹0.00", color="white", size=12,
-                               weight=ft.FontWeight.BOLD)
+                             weight=ft.FontWeight.BOLD)
     input_gst_val = ft.Text("₹0.00", color="white", size=12,
-                              weight=ft.FontWeight.BOLD)
+                            weight=ft.FontWeight.BOLD)
     net_gst_val = ft.Text("₹0.00", color="white", size=12,
-                           weight=ft.FontWeight.BOLD)
+                          weight=ft.FontWeight.BOLD)
 
     def back_to_hub(e=None):
         page.go("/businesses")
@@ -94,34 +97,22 @@ def BusinessDashboardView(page: ft.Page, business_id: str):
                 ft.Text("  MENU", color="#5d687d", size=7,
                         weight=ft.FontWeight.BOLD),
                 ft.Container(height=10),
-                menu_item(ft.Icons.HOME_OUTLINED,
-                          "Dashboard", True),
-                menu_item(ft.Icons.RECEIPT_LONG_OUTLINED,
-                          "Billing",
+                menu_item(ft.Icons.HOME_OUTLINED, "Dashboard", True),
+                menu_item(ft.Icons.RECEIPT_LONG_OUTLINED, "Billing",
                           route=f"/businesses/{business_id}/billing"),
-                menu_item(ft.Icons.INVENTORY_2_OUTLINED,
-                          "Products",
+                menu_item(ft.Icons.INVENTORY_2_OUTLINED, "Products",
                           route=f"/businesses/{business_id}/products"),
-                menu_item(ft.Icons.WAREHOUSE_OUTLINED,
-                          "Inventory",
+                menu_item(ft.Icons.WAREHOUSE_OUTLINED, "Inventory",
                           route=f"/businesses/{business_id}/inventory"),
-                menu_item(ft.Icons.SCHEDULE_OUTLINED,
-                          "EMI Management",
+                menu_item(ft.Icons.SCHEDULE_OUTLINED, "EMI Management",
                           route=f"/businesses/{business_id}/emi"),
-                menu_item(ft.Icons.RECEIPT_OUTLINED,
-                          "Sales History",
+                menu_item(ft.Icons.RECEIPT_OUTLINED, "Sales History",
                           route=f"/businesses/{business_id}/sales"),
-                menu_item(ft.Icons.BAR_CHART_ROUNDED,
-                          "Analytics",
+                menu_item(ft.Icons.BAR_CHART_ROUNDED, "Analytics",
                           route=f"/businesses/{business_id}/analytics"),
-                menu_item(ft.Icons.CALCULATE_OUTLINED,
-                          "Taxation",
-                          route=f"/businesses/{business_id}/taxation"),
-                menu_item(ft.Icons.GROUP_OUTLINED,
-                          "Customers",
+                menu_item(ft.Icons.GROUP_OUTLINED, "Customers",
                           route=f"/businesses/{business_id}/customers"),
-                menu_item(ft.Icons.CREDIT_CARD_OUTLINED,
-                          "Subscription",
+                menu_item(ft.Icons.CREDIT_CARD_OUTLINED, "Subscription",
                           route=f"/businesses/{business_id}/subscription"),
                 ft.Container(expand=True),
                 ft.Divider(color="#171b29", height=1),
@@ -317,7 +308,8 @@ def BusinessDashboardView(page: ft.Page, business_id: str):
                                     ),
                                     profit_val,
                                     ft.Row(controls=[
-                                        badge(margin_badge_val, CYAN, "#082936")
+                                        badge(margin_badge_val,
+                                              CYAN, "#082936")
                                     ]),
                                 ],
                             ),
@@ -403,12 +395,9 @@ def BusinessDashboardView(page: ft.Page, business_id: str):
                                     ],
                                 ),
                             ),
-                            gst_cell("Output GST (Collected)",
-                                     output_gst_val),
-                            gst_cell("Input GST (ITC Paid)",
-                                     input_gst_val),
-                            gst_cell("Net GST Payable",
-                                     net_gst_val, True),
+                            gst_cell("Output GST (Collected)", output_gst_val),
+                            gst_cell("Input GST (ITC Paid)", input_gst_val),
+                            gst_cell("Net GST Payable", net_gst_val, True),
                         ],
                     ),
                 ),
@@ -428,6 +417,17 @@ def BusinessDashboardView(page: ft.Page, business_id: str):
         (1012, 282, 1), (1128, 377, 2), (132, 514, 2), (303, 464, 1),
         (486, 551, 2), (676, 489, 1), (864, 574, 2), (1054, 501, 1),
     ]
+
+    star_controls = [
+        ft.Container(
+            left=float(x), top=float(y),
+            width=size, height=size,
+            border_radius=size, bgcolor="#a7b1c2",
+            animate_position=800,
+        )
+        for x, y, size in stars
+    ]
+
     background = ft.Stack(
         expand=True,
         controls=[
@@ -439,15 +439,31 @@ def BusinessDashboardView(page: ft.Page, business_id: str):
                     colors=["#06151f", BG],
                 ),
             ),
-            *[
-                ft.Container(
-                    left=x, top=y, width=size, height=size,
-                    border_radius=size, bgcolor="#a7b1c2",
-                )
-                for x, y, size in stars
-            ],
+            *star_controls,
         ],
     )
+
+    # ── Animated star thread ──────────────────────────────────────
+    _stop_flag = threading.Event()
+
+    def animate_stars():
+        time.sleep(0.5)  # small initial delay so the view renders first
+        while not _stop_flag.is_set():
+            try:
+                if page.route != f"/businesses/{business_id}/dashboard":
+                    break
+                for star in star_controls:
+                    star.left = max(
+                        0, min(1200, star.left + random.uniform(-50, 50)))
+                    star.top = max(
+                        0, min(800,  star.top + random.uniform(-50, 50)))
+                page.update()
+            except Exception:
+                break
+            time.sleep(0.8)
+
+    t = threading.Thread(target=animate_stars, daemon=True)
+    t.start()
 
     # ── Load data ─────────────────────────────────────────────────
     def load_business():
