@@ -9,6 +9,7 @@ from app.schemas.user import (
     SendOtpRequest,
     SignupRequest,
     LoginRequest,
+    ResetPasswordRequest,
     TokenResponse,
     UserResponse
 )
@@ -33,6 +34,13 @@ def send_otp(request: SendOtpRequest, db: Session = Depends(get_db)):
     otp_expiry = datetime.utcnow() + timedelta(minutes=5)
 
     existing = db.query(User).filter(User.email == request.email).first()
+
+    if request.purpose == "reset_password" and (
+        not existing or not existing.is_verified
+    ):
+        return {
+            "message": "If that email is registered, a reset code has been sent."
+        }
 
     if existing and existing.is_verified and request.purpose == "signup":
         raise HTTPException(
@@ -67,6 +75,45 @@ def send_otp(request: SendOtpRequest, db: Session = Depends(get_db)):
         )
 
     return {"message": "OTP sent to your email successfully"}
+
+
+@router.post("/reset-password")
+def reset_password(
+    request: ResetPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(User.email == request.email).first()
+
+    if not user or not user.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset request"
+        )
+
+    if not user.email_otp or user.email_otp != request.otp:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid OTP"
+        )
+
+    if (
+        not user.email_otp_expiry
+        or datetime.utcnow() > user.email_otp_expiry
+    ):
+        user.email_otp = None
+        user.email_otp_expiry = None
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="OTP expired. Please request a new one"
+        )
+
+    user.password = hash_password(request.new_password)
+    user.email_otp = None
+    user.email_otp_expiry = None
+    db.commit()
+
+    return {"message": "Password reset successfully"}
 
 
 # ── Signup ──────────────────────────────────────────────────────────

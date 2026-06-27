@@ -14,6 +14,7 @@ from app.models import emipayment
 from app.models import referral
 
 # Routers
+from app.routers import analytics as analytics_router
 from app.routers import auth
 from app.routers import business as business_router
 from app.routers import product as product_router
@@ -44,6 +45,7 @@ app.include_router(sales_router.router)
 app.include_router(purchase_router.router)
 app.include_router(emi_router.router)
 app.include_router(referral_router.router)
+app.include_router(analytics_router.router)
 
 @app.get("/")
 def root():

@@ -40,6 +40,24 @@ class VerifyOtpRequest(BaseModel):
     email: EmailStr
     otp: str
 
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    otp: str
+    new_password: str
+
+    @field_validator("otp")
+    def otp_format(cls, v):
+        if len(v) != 6 or not v.isdigit():
+            raise ValueError("OTP must be a 6-digit number")
+        return v
+
+    @field_validator("new_password")
+    def password_strength(cls, v):
+        if len(v) < 6:
+            raise ValueError("Password must be at least 6 characters")
+        return v
+
 # ── Response Schemas ─────────────────────────────────────────────
 
 class UserResponse(BaseModel):

@@ -1,5 +1,6 @@
 import requests
 
+
 BASE_URL = "http://127.0.0.1:8000"
 
 
@@ -16,6 +17,8 @@ class ApiClient:
         if self.token:
             headers["Authorization"] = f"Bearer {self.token}"
         return headers
+    
+
 
     @staticmethod
     def _result(response):
@@ -73,6 +76,19 @@ class ApiClient:
         )
         return self._result(response)
 
+    def reset_password(self, email: str, otp: str, new_password: str):
+        """POST /auth/reset-password"""
+        response = requests.post(
+            f"{BASE_URL}/auth/reset-password",
+            json={
+                "email": email,
+                "otp": otp,
+                "new_password": new_password,
+            },
+            headers=self._headers()
+        )
+        return self._result(response)
+
     def get_my_businesses(self):
         """GET /business/my-businesses"""
         response = requests.get(
@@ -112,6 +128,22 @@ class ApiClient:
             headers=self._headers()
         )
         return self._result(response)
+    
+def get_dashboard_stats(self, business_id: str):
+    """GET /analytics/dashboard/{business_id}"""
+    response = requests.get(
+        f"{BASE_URL}/analytics/dashboard/{business_id}",
+        headers=self._headers()
+    )
+    return response.json(), response.status_code
+
+def get_business(self, business_id: str):
+    """GET /business/{business_id}"""
+    response = requests.get(
+        f"{BASE_URL}/business/{business_id}",
+        headers=self._headers()
+    )
+    return response.json(), response.status_code
 
 
 api_client = ApiClient()
