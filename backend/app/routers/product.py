@@ -12,7 +12,7 @@ from app.services import product_service
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
-@router.post("/", response_model=ProductResponse)
+@router.post("/", response_model=ProductResponse, status_code=200)
 def create_product(
     request: ProductCreateRequest,
     db: Session = Depends(get_db),

@@ -23,31 +23,8 @@ def MyBusinessView(page: ft.Page):
     directory_panel = ft.Container(expand=True)
     error_text = ft.Text("", color="#fb7185", size=12)
     status_text = ft.Text("", color="#34d399", size=12)
-    user_initials_text = ft.Text(
-        "--",
-        color="white",
-        size=10,
-        weight=ft.FontWeight.BOLD,
-    )
-    user_name_text = ft.Text(
-        "Loading user...",
-        color="white",
-        size=11,
-        weight=ft.FontWeight.BOLD,
-        max_lines=1,
-        overflow=ft.TextOverflow.ELLIPSIS,
-    )
-    user_email_text = ft.Text(
-        "",
-        color="#566176",
-        size=8,
-        max_lines=1,
-        overflow=ft.TextOverflow.ELLIPSIS,
-    )
-
-    def logout(e):
-        api_client.set_token(None)
-        page.go("/login")
+    from app.component.sidebar_view import HubSidebar
+    sidebar, user_name_text, user_initials_text, user_email_text = HubSidebar(page, "/businesses")
 
     def field_style():
         return ft.TextStyle(
@@ -195,7 +172,7 @@ def MyBusinessView(page: ft.Page):
                 ),
             )
 
-        logo_url = business.get("logo_url")
+        logo_url = api_client.absolute_url(business.get("logo_url"))
         business_id = business.get("id")
 
         def enter_business(e):
@@ -207,7 +184,7 @@ def MyBusinessView(page: ft.Page):
                 src=logo_url,
                 width=66,
                 height=66,
-                fit=ft.ImageFit.COVER,
+                fit=ft.BoxFit.COVER,
                 border_radius=33,
             )
             if logo_url
@@ -578,128 +555,7 @@ def MyBusinessView(page: ft.Page):
 
     create_button.on_click = create_business_clicked
 
-    def menu_item(icon, label, active=False):
-        return ft.Container(
-            height=42,
-            padding=ft.padding.symmetric(horizontal=17),
-            border_radius=9,
-            bgcolor="#1c073c" if active else None,
-            border=ft.border.all(1, "#32105f") if active else None,
-            content=ft.Row(
-                spacing=14,
-                controls=[
-                    ft.Icon(
-                        icon,
-                        color=PURPLE if active else "#637087",
-                        size=17,
-                    ),
-                    ft.Text(
-                        label,
-                        color=PURPLE if active else "#778399",
-                        size=11,
-                        weight=ft.FontWeight.BOLD,
-                    ),
-                ],
-            ),
-        )
 
-    sidebar = ft.Container(
-        width=242,
-        bgcolor=SIDEBAR_BG,
-        border=ft.border.only(right=ft.BorderSide(1, "#171b29")),
-        padding=ft.padding.only(left=14, right=14, top=23, bottom=14),
-        content=ft.Column(
-            controls=[
-                ft.Container(
-                    padding=ft.padding.only(left=6),
-                    content=ft.Column(
-                        spacing=10,
-                        controls=[
-                            ft.Text(
-                                "PROFIT",
-                                color="white",
-                                size=17,
-                                weight=ft.FontWeight.BOLD,
-                            ),
-                            ft.Text(
-                                "BUSINESS HUB",
-                                color="#586278",
-                                size=9,
-                                weight=ft.FontWeight.BOLD,
-                            ),
-                        ],
-                    ),
-                ),
-                ft.Container(height=25),
-                ft.Text(
-                    "  MENU",
-                    color="#5d687d",
-                    size=8,
-                    weight=ft.FontWeight.BOLD,
-                ),
-                ft.Container(height=10),
-                menu_item(
-                    ft.Icons.BUSINESS_CENTER_OUTLINED,
-                    "Manage Business",
-                    True,
-                ),
-                ft.Container(height=4),
-                menu_item(ft.Icons.WORK_OUTLINE_ROUNDED, "Workplace"),
-                ft.Container(height=4),
-                menu_item(
-                    ft.Icons.REDEEM_OUTLINED, "Referral Program"
-                ),
-                ft.Container(expand=True),
-                ft.Divider(color="#171b29", height=1),
-                ft.Container(height=13),
-                ft.Container(
-                    height=68,
-                    padding=14,
-                    border_radius=11,
-                    border=ft.border.all(1, "#1a2130"),
-                    content=ft.Row(
-                        spacing=12,
-                        controls=[
-                            ft.Container(
-                                width=37,
-                                height=37,
-                                border_radius=19,
-                                border=ft.border.all(1, "#6e42e8"),
-                                alignment=ft.Alignment(0, 0),
-                                content=user_initials_text,
-                            ),
-                            ft.Container(
-                                width=130,
-                                content=ft.Column(
-                                    alignment=ft.MainAxisAlignment.CENTER,
-                                    spacing=3,
-                                    controls=[
-                                        user_name_text,
-                                        user_email_text,
-                                    ],
-                                ),
-                            ),
-                        ],
-                    ),
-                ),
-                ft.Container(height=12),
-                ft.Container(
-                    height=38,
-                    border_radius=8,
-                    border=ft.border.all(1, "#251220"),
-                    alignment=ft.Alignment(0, 0),
-                    on_click=logout,
-                    ink=True,
-                    content=ft.Text(
-                        "SIGN OUT SESSION",
-                        color="#8f294d",
-                        size=9,
-                        weight=ft.FontWeight.BOLD,
-                    ),
-                ),
-            ],
-        ),
-    )
 
     form_panel = ft.Container(
         expand=True,

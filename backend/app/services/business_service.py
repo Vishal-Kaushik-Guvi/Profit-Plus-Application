@@ -3,7 +3,53 @@ from fastapi import HTTPException, status
 from app.models.business import Business, SubType
 from app.models.user import User
 from app.schemas.business import BusinessCreateRequest, BusinessUpdateRequest
+from pathlib import Path
+import base64
+import binascii
 import uuid
+
+UPLOAD_ROOT = Path(__file__).resolve().parents[2] / "uploads" / "business_logos"
+ALLOWED_LOGO_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
+MAX_LOGO_SIZE = 2 * 1024 * 1024
+
+
+def save_business_logo(request: BusinessCreateRequest, business_id: uuid.UUID) -> str | None:
+    if not request.logo_data:
+        return None
+
+    if not request.logo_filename:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Logo filename is required"
+        )
+
+    extension = Path(request.logo_filename).suffix.lower()
+    if extension not in ALLOWED_LOGO_EXTENSIONS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Logo must be a JPG, PNG, or WEBP image"
+        )
+
+    try:
+        logo_bytes = base64.b64decode(request.logo_data, validate=True)
+    except (binascii.Error, ValueError):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid logo file"
+        )
+
+    if len(logo_bytes) > MAX_LOGO_SIZE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Logo file must be 2MB or smaller"
+        )
+
+    UPLOAD_ROOT.mkdir(parents=True, exist_ok=True)
+    filename = f"{business_id}{extension}"
+    logo_path = UPLOAD_ROOT / filename
+    logo_path.write_bytes(logo_bytes)
+
+    return f"/uploads/business_logos/{filename}"
 
 def create_business(
     request: BusinessCreateRequest,
@@ -36,11 +82,15 @@ def create_business(
         if referrer:
             referred_by_user_id = referrer.id
 
+    business_id = uuid.uuid4()
+    logo_url = save_business_logo(request, business_id)
+
     # Create new business
     business = Business(
-        id=uuid.uuid4(),
+        id=business_id,
         owner_id=current_user.id,
         business_name=request.business_name,
+        logo_url=logo_url,
         phone=request.phone,
         email=request.email,
         address=request.address,

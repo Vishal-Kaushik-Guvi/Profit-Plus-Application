@@ -2,6 +2,7 @@ import flet as ft
 import threading
 import time
 import random
+import os
 
 from app.api_client import api_client
 
@@ -15,29 +16,30 @@ PURPLE = "#6d22d9"
 
 
 def CreateBusinessView(page: ft.Page):
-    user_initials = ft.Text(
-        "--", color="white", size=10, weight=ft.FontWeight.BOLD
-    )
-    user_name = ft.Text(
-        "Loading user...",
-        color="white",
-        size=11,
-        weight=ft.FontWeight.BOLD,
-        max_lines=1,
-        overflow=ft.TextOverflow.ELLIPSIS,
-    )
-    user_email = ft.Text(
-        "", color="#59657a", size=8, max_lines=1,
-        overflow=ft.TextOverflow.ELLIPSIS
-    )
+    from app.component.sidebar_view import HubSidebar
+    sidebar, user_name, user_initials, user_email = HubSidebar(page, "")
+    
     error_text = ft.Text("", color="#fb7185", size=12)
     selected_logo_text = ft.Text(
         "No file chosen", color="#6d788d", size=11
     )
+    selected_logo_path = {"path": ""}
 
-    def logout(e):
-        api_client.set_token(None)
-        page.go("/login")
+    logo_file_picker = ft.FilePicker()
+
+    async def choose_logo(e):
+        files = await logo_file_picker.pick_files(
+            allow_multiple=False,
+            file_type=ft.FilePickerFileType.CUSTOM,
+            allowed_extensions=["jpg", "jpeg", "png", "webp"],
+        )
+        if files:
+            selected_logo_path["path"] = files[0].path
+            selected_logo_text.value = os.path.basename(files[0].path)
+        else:
+            selected_logo_path["path"] = ""
+            selected_logo_text.value = "No file chosen"
+        page.update()
 
     def cancel(e=None):
         page.go("/businesses")
@@ -184,6 +186,7 @@ def CreateBusinessView(page: ft.Page):
                 pincode=value(pincode),
                 state=value(state),
                 country=value(country),
+                logo_path=selected_logo_path["path"],
             )
         except Exception:
             error_text.value = "Unable to connect to the server"
@@ -222,128 +225,7 @@ def CreateBusinessView(page: ft.Page):
             ],
         )
 
-    def menu_item(icon, label, active=False):
-        return ft.Container(
-            height=42,
-            padding=ft.padding.symmetric(horizontal=17),
-            border_radius=9,
-            bgcolor="#1c073c" if active else None,
-            border=ft.border.all(1, "#32105f") if active else None,
-            content=ft.Row(
-                spacing=14,
-                controls=[
-                    ft.Icon(
-                        icon,
-                        color=PURPLE if active else "#637087",
-                        size=17,
-                    ),
-                    ft.Text(
-                        label,
-                        color=PURPLE if active else "#778399",
-                        size=11,
-                        weight=ft.FontWeight.BOLD,
-                    ),
-                ],
-            ),
-        )
 
-    sidebar = ft.Container(
-        width=280,
-        bgcolor=SIDEBAR_BG,
-        border=ft.border.only(right=ft.BorderSide(1, "#171b29")),
-        padding=ft.padding.only(left=24, right=24, top=25, bottom=14),
-        content=ft.Column(
-            controls=[
-                ft.Text(
-                    "PROFIT",
-                    color="white",
-                    size=18,
-                    weight=ft.FontWeight.BOLD,
-                ),
-                ft.Container(height=3),
-                ft.Text(
-                    "B U S I N E S S   H U B",
-                    color="#59657a",
-                    size=8,
-                    weight=ft.FontWeight.BOLD,
-                ),
-                ft.Container(height=29),
-                ft.Text(
-                    "MENU",
-                    color="#5d687d",
-                    size=8,
-                    weight=ft.FontWeight.BOLD,
-                ),
-                ft.Container(height=12),
-                menu_item(
-                    ft.Icons.BUSINESS_CENTER_OUTLINED,
-                    "Manage Business",
-                    True,
-                ),
-                ft.Container(height=5),
-                menu_item(ft.Icons.WORK_OUTLINE_ROUNDED, "Workplace"),
-                ft.Container(height=5),
-                menu_item(ft.Icons.MAIL_OUTLINE_ROUNDED, "Inbox"),
-                ft.Container(height=5),
-                menu_item(
-                    ft.Icons.REDEEM_OUTLINED, "Referral Program"
-                ),
-                ft.Container(height=5),
-                menu_item(
-                    ft.Icons.INFO_OUTLINE_ROUNDED, "Report an Issue"
-                ),
-                ft.Container(height=5),
-                menu_item(
-                    ft.Icons.SHIELD_OUTLINED, "Admin Dashboard"
-                ),
-                ft.Container(expand=True),
-                ft.Divider(color="#171b29", height=1),
-                ft.Container(height=14),
-                ft.Container(
-                    height=74,
-                    padding=14,
-                    border_radius=12,
-                    border=ft.border.all(1, "#1a2130"),
-                    content=ft.Row(
-                        spacing=13,
-                        controls=[
-                            ft.Container(
-                                width=40,
-                                height=40,
-                                border_radius=20,
-                                border=ft.border.all(1, "#6e42e8"),
-                                alignment=ft.Alignment(0, 0),
-                                content=user_initials,
-                            ),
-                            ft.Container(
-                                width=150,
-                                content=ft.Column(
-                                    alignment=ft.MainAxisAlignment.CENTER,
-                                    spacing=3,
-                                    controls=[user_name, user_email],
-                                ),
-                            ),
-                        ],
-                    ),
-                ),
-                ft.Container(height=12),
-                ft.Container(
-                    height=40,
-                    border_radius=8,
-                    border=ft.border.all(1, "#251220"),
-                    alignment=ft.Alignment(0, 0),
-                    on_click=logout,
-                    ink=True,
-                    content=ft.Text(
-                        "SIGN OUT SESSION",
-                        color="#8f294d",
-                        size=9,
-                        weight=ft.FontWeight.BOLD,
-                    ),
-                ),
-            ],
-        ),
-    )
 
     logo_picker = ft.Row(
         spacing=12,
@@ -352,6 +234,8 @@ def CreateBusinessView(page: ft.Page):
                 padding=ft.padding.symmetric(horizontal=12, vertical=8),
                 border_radius=7,
                 bgcolor="#073042",
+                ink=True,
+                on_click=choose_logo,
                 content=ft.Text(
                     "CHOOSE FILE",
                     color=CYAN,

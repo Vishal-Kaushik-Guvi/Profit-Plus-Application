@@ -21,27 +21,27 @@ def HomeView(page: ft.Page):
             # Base dark layer
             ft.Container(
                 expand=True,
-                bgcolor="white",
+                bgcolor="#06060c",
             ),
             # Purple glow — top left (fades to background color, not transparent)
             ft.Container(
-                width=500, height=500,
-                left=-150, top=-150,
+                width=500,
+                height=500,
+                left=-150,
+                top=-150,
                 border_radius=500,
-                gradient=ft.RadialGradient(
-                    colors=["#3c1e6e", "#06060c"]
-                ),
+                gradient=ft.RadialGradient(colors=["#3c1e6e", "#06060c"]),
             ),
             # Cyan glow — right side (fades to background color, not transparent)
             ft.Container(
-                width=600, height=600,
-                right=-200, top=100,
+                width=600,
+                height=600,
+                right=-200,
+                top=100,
                 border_radius=600,
-                gradient=ft.RadialGradient(
-                    colors=["#0a3a42", "#06060c"]
-                ),
+                gradient=ft.RadialGradient(colors=["#0a3a42", "#06060c"]),
             ),
-        ]
+        ],
     )
 
     # ── Navbar ───────────────────────────────────────────────────────
@@ -356,14 +356,19 @@ def HomeView(page: ft.Page):
     return ft.View(
         route="/",
         padding=0,
+        bgcolor="#06060c",  # ✅ add this
         scroll=ft.ScrollMode.AUTO,
         controls=[
             ft.Stack(
                 expand=True,
                 controls=[
                     background,
-                    content_column,
-                ]
+                    ft.Column(  # ✅ wrap in scrollable column
+                        scroll=ft.ScrollMode.AUTO,
+                        expand=True,
+                        controls=[content_column],
+                    ),
+                ],
             )
-        ]
+        ],
     )

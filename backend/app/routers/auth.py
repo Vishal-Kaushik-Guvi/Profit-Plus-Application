@@ -23,6 +23,16 @@ def generate_otp() -> str:
     return str(random.randint(100000, 999999))
 
 
+def is_incomplete_signup_user(user: User) -> bool:
+    return (
+        user
+        and not user.is_verified
+        and not user.password
+        and not user.name
+        and not user.phone
+    )
+
+
 # ── Send OTP ────────────────────────────────────────────────────────
 
 @router.post("/send-otp")
@@ -48,6 +58,15 @@ def send_otp(request: SendOtpRequest, db: Session = Depends(get_db)):
             detail="Email already registered. Please log in instead."
         )
 
+    if request.purpose == "signup" and request.phone:
+        phone_owner = db.query(User).filter(User.phone == request.phone).first()
+        if phone_owner:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Phone number already registered"
+            )
+
+    created_placeholder = False
     if existing:
         existing.email_otp = otp
         existing.email_otp_expiry = otp_expiry
@@ -61,6 +80,7 @@ def send_otp(request: SendOtpRequest, db: Session = Depends(get_db)):
             is_verified=False
         )
         db.add(existing)
+        created_placeholder = True
         user_name = "there"
 
     db.commit()
@@ -69,6 +89,9 @@ def send_otp(request: SendOtpRequest, db: Session = Depends(get_db)):
     email_sent = send_otp_email(request.email, otp, user_name)
 
     if not email_sent:
+        if created_placeholder:
+            db.delete(existing)
+            db.commit()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to send OTP email. Please try again."
@@ -141,6 +164,9 @@ def signup(request: SignupRequest, db: Session = Depends(get_db)):
     if request.phone:
         phone_owner = db.query(User).filter(User.phone == request.phone, User.id != existing.id).first()
         if phone_owner:
+            if is_incomplete_signup_user(existing):
+                db.delete(existing)
+                db.commit()
             raise HTTPException(status_code=400, detail="Phone number already registered")
 
     # Update user

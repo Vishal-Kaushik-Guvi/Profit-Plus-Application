@@ -5,12 +5,17 @@ from app.theme import Colors
 
 
 def LoginView(page: ft.Page):
+    
+    def go_to_home(e):
+        page.go("/")
 
     def go_to_signup(e):
         page.go("/signup")
 
     def forgot_password_clicked(e):
         page.go("/forgot-password")
+
+
 
     email_field = ft.TextField(
         label="EMAIL ADDRESS",
@@ -168,14 +173,54 @@ def LoginView(page: ft.Page):
     return ft.View(
         route="/login",
         padding=0,
-        scroll=ft.ScrollMode.AUTO,
+        bgcolor="#06060c",
         controls=[
-            ft.Container(
+            ft.Stack(
                 expand=True,
-                bgcolor="#06060c",
-                alignment=ft.Alignment(0, 0),
-                padding=40,
-                content=login_card,
+                controls=[
+                    # Background
+                    ft.Container(
+                        expand=True,
+                        bgcolor="#06060c",
+                    ),
+                    # Centered login card
+                    ft.Container(
+                        expand=True,
+                        alignment=ft.Alignment(0, 0),
+                        padding=40,
+                        content=login_card,
+                    ),
+                    # Back button — top left
+                    ft.Container(
+                        left=24,
+                        top=24,
+                        content=ft.Container(
+                            height=38,
+                            padding=ft.padding.symmetric(horizontal=14),
+                            border_radius=8,
+                            border=ft.border.all(1, "#172231"),
+                            ink=True,
+                            on_click=go_to_home,
+                            content=ft.Row(
+                                tight=True,
+                                spacing=8,
+                                controls=[
+                                    ft.Icon(
+                                        ft.Icons.ARROW_BACK_ROUNDED,
+                                        color="#657188",
+                                        size=16,
+                                    ),
+                                    ft.Text(
+                                        "BACK",
+                                        color="#657188",
+                                        size=9,
+                                        weight=ft.FontWeight.BOLD,
+                                    ),
+                                ],
+                            ),
+                        ),
+                    ),
+                ],
             )
         ],
     )

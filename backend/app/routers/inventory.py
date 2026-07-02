@@ -6,7 +6,8 @@ from app.models.user import User
 from app.schemas.inventory import (
     InventoryCreateRequest,
     InventoryUpdateRequest,
-    InventoryResponse
+    InventoryResponse,
+    InventoryWithProductResponse
 )
 from app.services import inventory_service
 
@@ -21,7 +22,7 @@ def create_inventory(
     """Create inventory record for a product"""
     return inventory_service.create_inventory(request, current_user, db)
 
-@router.get("/business/{business_id}", response_model=List[InventoryResponse])
+@router.get("/business/{business_id}", response_model=List[InventoryWithProductResponse])
 def get_business_inventory(
     business_id: str,
     db: Session = Depends(get_db),

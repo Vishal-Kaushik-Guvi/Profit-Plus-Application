@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 from app.core.database import engine, Base
 
 # Models
@@ -33,6 +35,10 @@ app = FastAPI(
     description="SaaS backend for local business management",
     version="1.0.0"
 )
+
+UPLOAD_DIR = Path(__file__).resolve().parents[1] / "uploads"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 
 # Register routers
 app.include_router(auth.router)

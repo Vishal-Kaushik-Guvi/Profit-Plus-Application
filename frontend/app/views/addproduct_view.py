@@ -10,132 +10,16 @@ PURPLE = "#6d22d9"
 INPUT_BG = "#080d17"
 
 
-def AddProductView(page: ft.Page, business_id: str):
+def AddProductView(page: ft.Page, business_id: str, product_id: str = None):
 
-    business_name_text = ft.Text(
-        "Loading...", color="white", size=11,
-        weight=ft.FontWeight.BOLD, max_lines=1,
-        overflow=ft.TextOverflow.ELLIPSIS,
-    )
-    business_initials_text = ft.Text(
-        "--", color="white", size=10, weight=ft.FontWeight.BOLD
+    from app.component.sidebar_view import BusinessSidebar
+    sidebar, business_name_text, business_initials_text = BusinessSidebar(
+        page, business_id, f"/businesses/{business_id}/products"
     )
     error_text = ft.Text("", color="#fb7185", size=12)
+    is_edit_mode = bool(product_id)
 
-    # ── Sidebar ───────────────────────────────────────────────────
-    def menu_item(icon, label, active=False, route=None):
-        return ft.Container(
-            height=38,
-            padding=ft.padding.symmetric(horizontal=16),
-            border_radius=8,
-            bgcolor="#1c073c" if active else None,
-            border=ft.border.all(1, "#32105f") if active else None,
-            on_click=(lambda e: page.go(route)) if route else None,
-            ink=bool(route),
-            content=ft.Row(
-                spacing=14,
-                controls=[
-                    ft.Icon(icon,
-                            color=PURPLE if active else "#657188",
-                            size=16),
-                    ft.Text(label,
-                            color=PURPLE if active else "#7a869b",
-                            size=10, weight=ft.FontWeight.BOLD),
-                ],
-            ),
-        )
 
-    sidebar = ft.Container(
-        width=220,
-        bgcolor=SIDEBAR_BG,
-        border=ft.border.only(right=ft.BorderSide(1, "#171b29")),
-        padding=ft.padding.only(left=16, right=16, top=24, bottom=14),
-        content=ft.Column(
-            controls=[
-                ft.Container(
-                    padding=ft.padding.only(left=6),
-                    content=ft.Column(
-                        spacing=9,
-                        controls=[
-                            ft.Text("PROFIT", color="white", size=17,
-                                    weight=ft.FontWeight.BOLD),
-                            ft.Text("B U S I N E S S   D A S H B O A R D",
-                                    color="#5d687d", size=7,
-                                    weight=ft.FontWeight.BOLD),
-                        ],
-                    ),
-                ),
-                ft.Container(height=26),
-                ft.Text("  MENU", color="#5d687d", size=7,
-                        weight=ft.FontWeight.BOLD),
-                ft.Container(height=10),
-                menu_item(ft.Icons.HOME_OUTLINED, "Dashboard",
-                          route=f"/businesses/{business_id}/dashboard"),
-                menu_item(ft.Icons.RECEIPT_LONG_OUTLINED, "Billing",
-                          route=f"/businesses/{business_id}/billing"),
-                menu_item(ft.Icons.INVENTORY_2_OUTLINED, "Products", True),
-                menu_item(ft.Icons.WAREHOUSE_OUTLINED, "Inventory",
-                          route=f"/businesses/{business_id}/inventory"),
-                menu_item(ft.Icons.SCHEDULE_OUTLINED, "EMI Management",
-                          route=f"/businesses/{business_id}/emi"),
-                menu_item(ft.Icons.RECEIPT_OUTLINED, "Sales History",
-                          route=f"/businesses/{business_id}/sales"),
-                menu_item(ft.Icons.BAR_CHART_ROUNDED, "Analytics",
-                          route=f"/businesses/{business_id}/analytics"),
-                menu_item(ft.Icons.GROUP_OUTLINED, "Customers",
-                          route=f"/businesses/{business_id}/customers"),
-                menu_item(ft.Icons.CREDIT_CARD_OUTLINED, "Subscription",
-                          route=f"/businesses/{business_id}/subscription"),
-                ft.Container(expand=True),
-                ft.Divider(color="#171b29", height=1),
-                ft.Container(height=12),
-                ft.Container(
-                    height=68, padding=12, border_radius=11,
-                    border=ft.border.all(1, "#1a2130"),
-                    content=ft.Row(
-                        spacing=11,
-                        controls=[
-                            ft.Container(
-                                width=37, height=37, border_radius=19,
-                                border=ft.border.all(1, "#496078"),
-                                bgcolor="#111b29",
-                                alignment=ft.Alignment(0, 0),
-                                content=business_initials_text,
-                            ),
-                            ft.Container(
-                                width=125,
-                                content=ft.Column(
-                                    alignment=ft.MainAxisAlignment.CENTER,
-                                    spacing=3,
-                                    controls=[
-                                        business_name_text,
-                                        ft.Text("BUSINESS PROFILE",
-                                                color="#59657a", size=7),
-                                    ],
-                                ),
-                            ),
-                        ],
-                    ),
-                ),
-                ft.Container(height=10),
-                ft.Container(
-                    height=38, border_radius=8,
-                    on_click=lambda e: page.go(
-                        f"/businesses/{business_id}/products"),
-                    ink=True,
-                    content=ft.Row(
-                        spacing=12,
-                        controls=[
-                            ft.Icon(ft.Icons.ARROW_BACK_ROUNDED,
-                                    color="#657188", size=16),
-                            ft.Text("BACK TO PRODUCTS", color="#657188",
-                                    size=8, weight=ft.FontWeight.BOLD),
-                        ],
-                    ),
-                ),
-            ],
-        ),
-    )
 
     # ── Form field builder ────────────────────────────────────────
     def field(label, hint="", required=False, keyboard_type=None,
@@ -252,7 +136,9 @@ def AddProductView(page: ft.Page, business_id: str):
             tight=True, spacing=10,
             controls=[
                 ft.Icon(ft.Icons.CHECK_ROUNDED, color="#02101a", size=18),
-                ft.Text("SAVE PRODUCT", color="#02101a", size=11,
+                ft.Text(
+                    "UPDATE PRODUCT" if is_edit_mode else "SAVE PRODUCT",
+                    color="#02101a", size=11,
                         weight=ft.FontWeight.BOLD),
             ],
         ),
@@ -263,7 +149,9 @@ def AddProductView(page: ft.Page, business_id: str):
             tight=True, spacing=10,
             controls=[
                 ft.Icon(ft.Icons.CHECK_ROUNDED, color="#02101a", size=18),
-                ft.Text("SAVE PRODUCT", color="#02101a", size=11,
+                ft.Text(
+                    "UPDATE PRODUCT" if is_edit_mode else "SAVE PRODUCT",
+                    color="#02101a", size=11,
                         weight=ft.FontWeight.BOLD),
             ],
         )
@@ -282,18 +170,24 @@ def AddProductView(page: ft.Page, business_id: str):
         page.update()
 
         try:
-            data, status_code = api_client.create_product(
-                business_id=business_id,
-                product_name=val(product_name),
-                category=val(category),
-                brand=val(brand),
-                description=val(description),
-                hsn_code=val(hsn_code),
-                tax_percentage=float(val(tax_pct) or 0),
-                color=val(color_variant),
-                size=val(size_variant),
-                business_type=ddval(business_type),
-            )
+            payload = {
+                "product_name": val(product_name),
+                "category": val(category),
+                "brand": val(brand),
+                "description": val(description),
+                "hsn_code": val(hsn_code),
+                "tax_percentage": float(val(tax_pct) or 0),
+                "color": val(color_variant),
+                "size": val(size_variant),
+                "business_type": ddval(business_type),
+            }
+            if is_edit_mode:
+                data, status_code = api_client.update_product(product_id, payload)
+            else:
+                data, status_code = api_client.create_product(
+                    business_id=business_id,
+                    **payload,
+                )
         except Exception:
             error_text.value = "Unable to connect to the server"
             reset_btn()
@@ -393,7 +287,9 @@ def AddProductView(page: ft.Page, business_id: str):
                         ft.Column(
                             spacing=6,
                             controls=[
-                                ft.Text("ADD PRODUCT", color="white",
+                                ft.Text(
+                                        "EDIT PRODUCT" if is_edit_mode else "ADD PRODUCT",
+                                        color="white",
                                         size=30, weight=ft.FontWeight.BOLD),
                                 ft.Row(
                                     spacing=8,
@@ -402,7 +298,9 @@ def AddProductView(page: ft.Page, business_id: str):
                                             width=7, height=7,
                                             border_radius=4, bgcolor=CYAN),
                                         ft.Text(
-                                            "R E G I S T E R   A   N E W   P R O D U C T   T O   Y O U R   C A T A L O G",
+                                            "U P D A T E   P R O D U C T   D E T A I L S"
+                                            if is_edit_mode
+                                            else "R E G I S T E R   A   N E W   P R O D U C T   T O   Y O U R   C A T A L O G",
                                             color="#69758b", size=7,
                                             weight=ft.FontWeight.BOLD),
                                     ],
@@ -471,10 +369,47 @@ def AddProductView(page: ft.Page, business_id: str):
         except Exception:
             pass
 
+    def load_product():
+        if not is_edit_mode:
+            return
+
+        try:
+            data, status = api_client.get_product(product_id)
+        except Exception:
+            error_text.value = "Unable to load product"
+            page.update()
+            return
+
+        if status == 401:
+            api_client.set_token(None)
+            page.go("/login")
+            return
+
+        if status != 200:
+            error_text.value = data.get("detail", "Unable to load product")
+            page.update()
+            return
+
+        product_name.controls[1].value = data.get("product_name") or ""
+        category.controls[1].value = data.get("category") or ""
+        brand.controls[1].value = data.get("brand") or ""
+        description.controls[1].value = data.get("description") or ""
+        hsn_code.controls[1].value = data.get("hsn_code") or ""
+        tax_pct.controls[1].value = str(data.get("tax_percentage") or "")
+        color_variant.controls[1].value = data.get("color") or ""
+        size_variant.controls[1].value = data.get("size") or ""
+        business_type.controls[1].value = data.get("business_type") or None
+        page.update()
+
     load_business()
+    load_product()
 
     return ft.View(
-        route=f"/businesses/{business_id}/products/add",
+        route=(
+            f"/businesses/{business_id}/products/{product_id}/edit"
+            if is_edit_mode
+            else f"/businesses/{business_id}/products/add"
+        ),
         padding=0,
         controls=[
             ft.Stack(

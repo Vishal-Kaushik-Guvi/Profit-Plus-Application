@@ -13,13 +13,9 @@ PURPLE = "#6d22d9"
 
 
 def BusinessDashboardView(page: ft.Page, business_id: str):
-    business_name = ft.Text(
-        "Loading business...", color="white", size=11,
-        weight=ft.FontWeight.BOLD, max_lines=1,
-        overflow=ft.TextOverflow.ELLIPSIS,
-    )
-    business_initials = ft.Text(
-        "--", color="white", size=10, weight=ft.FontWeight.BOLD
+    from app.component.sidebar_view import BusinessSidebar
+    sidebar, business_name, business_initials = BusinessSidebar(
+        page, business_id, f"/businesses/{business_id}/dashboard"
     )
     error_text = ft.Text("", color="#fb7185", size=12)
 
@@ -47,121 +43,7 @@ def BusinessDashboardView(page: ft.Page, business_id: str):
     net_gst_val = ft.Text("₹0.00", color="white", size=12,
                           weight=ft.FontWeight.BOLD)
 
-    def back_to_hub(e=None):
-        page.go("/businesses")
 
-    # ── Sidebar menu item ─────────────────────────────────────────
-    def menu_item(icon, label, active=False, route=None):
-        return ft.Container(
-            height=38,
-            padding=ft.padding.symmetric(horizontal=16),
-            border_radius=8,
-            bgcolor="#1c073c" if active else None,
-            border=ft.border.all(1, "#32105f") if active else None,
-            on_click=(lambda e: page.go(route)) if route else None,
-            ink=bool(route),
-            content=ft.Row(
-                spacing=14,
-                controls=[
-                    ft.Icon(icon,
-                            color=PURPLE if active else "#657188",
-                            size=16),
-                    ft.Text(label,
-                            color=PURPLE if active else "#7a869b",
-                            size=10, weight=ft.FontWeight.BOLD),
-                ],
-            ),
-        )
-
-    sidebar = ft.Container(
-        width=220,
-        bgcolor=SIDEBAR_BG,
-        border=ft.border.only(right=ft.BorderSide(1, "#171b29")),
-        padding=ft.padding.only(left=16, right=16, top=24, bottom=14),
-        content=ft.Column(
-            controls=[
-                ft.Container(
-                    padding=ft.padding.only(left=6),
-                    content=ft.Column(
-                        spacing=9,
-                        controls=[
-                            ft.Text("PROFIT", color="white", size=17,
-                                    weight=ft.FontWeight.BOLD),
-                            ft.Text("B U S I N E S S   D A S H B O A R D",
-                                    color="#5d687d", size=7,
-                                    weight=ft.FontWeight.BOLD),
-                        ],
-                    ),
-                ),
-                ft.Container(height=26),
-                ft.Text("  MENU", color="#5d687d", size=7,
-                        weight=ft.FontWeight.BOLD),
-                ft.Container(height=10),
-                menu_item(ft.Icons.HOME_OUTLINED, "Dashboard", True),
-                menu_item(ft.Icons.RECEIPT_LONG_OUTLINED, "Billing",
-                          route=f"/businesses/{business_id}/billing"),
-                menu_item(ft.Icons.INVENTORY_2_OUTLINED, "Products",
-                          route=f"/businesses/{business_id}/products"),
-                menu_item(ft.Icons.WAREHOUSE_OUTLINED, "Inventory",
-                          route=f"/businesses/{business_id}/inventory"),
-                menu_item(ft.Icons.SCHEDULE_OUTLINED, "EMI Management",
-                          route=f"/businesses/{business_id}/emi"),
-                menu_item(ft.Icons.RECEIPT_OUTLINED, "Sales History",
-                          route=f"/businesses/{business_id}/sales"),
-                menu_item(ft.Icons.BAR_CHART_ROUNDED, "Analytics",
-                          route=f"/businesses/{business_id}/analytics"),
-                menu_item(ft.Icons.GROUP_OUTLINED, "Customers",
-                          route=f"/businesses/{business_id}/customers"),
-                menu_item(ft.Icons.CREDIT_CARD_OUTLINED, "Subscription",
-                          route=f"/businesses/{business_id}/subscription"),
-                ft.Container(expand=True),
-                ft.Divider(color="#171b29", height=1),
-                ft.Container(height=12),
-                ft.Container(
-                    height=68, padding=12, border_radius=11,
-                    border=ft.border.all(1, "#1a2130"),
-                    content=ft.Row(
-                        spacing=11,
-                        controls=[
-                            ft.Container(
-                                width=37, height=37, border_radius=19,
-                                border=ft.border.all(1, "#496078"),
-                                bgcolor="#111b29",
-                                alignment=ft.Alignment(0, 0),
-                                content=business_initials,
-                            ),
-                            ft.Container(
-                                width=125,
-                                content=ft.Column(
-                                    alignment=ft.MainAxisAlignment.CENTER,
-                                    spacing=3,
-                                    controls=[
-                                        business_name,
-                                        ft.Text("BUSINESS PROFILE",
-                                                color="#59657a", size=7),
-                                    ],
-                                ),
-                            ),
-                        ],
-                    ),
-                ),
-                ft.Container(height=10),
-                ft.Container(
-                    height=38, border_radius=8,
-                    on_click=back_to_hub, ink=True,
-                    content=ft.Row(
-                        spacing=12,
-                        controls=[
-                            ft.Icon(ft.Icons.ARROW_BACK_ROUNDED,
-                                    color="#657188", size=16),
-                            ft.Text("BACK TO HUB", color="#657188",
-                                    size=8, weight=ft.FontWeight.BOLD),
-                        ],
-                    ),
-                ),
-            ],
-        ),
-    )
 
     # ── Badge ─────────────────────────────────────────────────────
     def badge(text_ctrl, color, bgcolor):

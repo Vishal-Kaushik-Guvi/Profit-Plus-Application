@@ -6,7 +6,14 @@ from typing import Optional
 class SendOtpRequest(BaseModel):
     """Send OTP via email"""
     email: EmailStr
+    phone: Optional[str] = None
     purpose: str = "signup"  # "signup" or "login" or "reset_password"
+
+    @field_validator("phone")
+    def phone_number(cls, v):
+        if v is not None and (len(v) != 10 or not v.isdigit()):
+            raise ValueError("Phone number must be 10 digits")
+        return v
 
 
 class SignupRequest(BaseModel):
@@ -25,7 +32,7 @@ class SignupRequest(BaseModel):
 
     @field_validator("phone")
     def phone_number(cls, v):
-        if v is not None and len(v) != 10:
+        if v is not None and (len(v) != 10 or not v.isdigit()):
             raise ValueError("Phone number must be 10 digits")
         return v
 

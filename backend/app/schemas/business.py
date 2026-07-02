@@ -15,6 +15,8 @@ class SubType(str, Enum):
 class BusinessCreateRequest(BaseModel):
     """What client sends to register a new business"""
     business_name: str
+    logo_filename: Optional[str] = None
+    logo_data: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[str] = None
     address: Optional[str] = None

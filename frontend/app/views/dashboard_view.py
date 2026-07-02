@@ -14,16 +14,8 @@ PURPLE = "#6d22d9"
 
 def DashboardView(page: ft.Page, business_id: str):
 
-    # ── Sidebar user info (same as CreateBusinessView) ─────────────
-    user_initials = ft.Text("--", color="white", size=10, weight=ft.FontWeight.BOLD)
-    user_name = ft.Text("Loading...", color="white", size=11, weight=ft.FontWeight.BOLD,
-                        max_lines=1, overflow=ft.TextOverflow.ELLIPSIS)
-    user_email = ft.Text("", color="#59657a", size=8, max_lines=1,
-                         overflow=ft.TextOverflow.ELLIPSIS)
-
-    def logout(e):
-        api_client.set_token(None)
-        page.go("/login")
+    from app.component.sidebar_view import HubSidebar
+    sidebar, user_name, user_initials, user_email = HubSidebar(page, f"/businesses/{business_id}/dashboard")
 
     # ── Stat card builder ─────────────────────────────────────────
     def stat_card(title, value_text, icon, icon_color, glow_color, ref=None):
@@ -181,103 +173,7 @@ def DashboardView(page: ft.Page, business_id: str):
         )
     )
 
-    # ── Sidebar (same structure as CreateBusinessView) ────────────
-    def menu_item(icon, label, active=False, on_click=None):
-        return ft.Container(
-            height=42,
-            padding=ft.padding.symmetric(horizontal=17),
-            border_radius=9,
-            bgcolor="#1c073c" if active else None,
-            border=ft.border.all(1, "#32105f") if active else None,
-            on_click=on_click,
-            ink=True if on_click else False,
-            content=ft.Row(
-                spacing=14,
-                controls=[
-                    ft.Icon(icon, color=PURPLE if active else "#637087", size=17),
-                    ft.Text(label,
-                            color=PURPLE if active else "#778399",
-                            size=11, weight=ft.FontWeight.BOLD),
-                ],
-            ),
-        )
 
-    sidebar = ft.Container(
-        width=280,
-        bgcolor=SIDEBAR_BG,
-        border=ft.border.only(right=ft.BorderSide(1, "#171b29")),
-        padding=ft.padding.only(left=24, right=24, top=25, bottom=14),
-        content=ft.Column(
-            controls=[
-                ft.Text("PROFIT", color="white", size=18,
-                        weight=ft.FontWeight.BOLD),
-                ft.Container(height=3),
-                ft.Text("B U S I N E S S   H U B", color="#59657a",
-                        size=8, weight=ft.FontWeight.BOLD),
-                ft.Container(height=29),
-                ft.Text("MENU", color="#5d687d", size=8,
-                        weight=ft.FontWeight.BOLD),
-                ft.Container(height=12),
-                menu_item(ft.Icons.DASHBOARD_OUTLINED,
-                          "Dashboard", active=True),
-                ft.Container(height=5),
-                menu_item(ft.Icons.INVENTORY_2_OUTLINED,
-                          "Products & Inventory",
-                          on_click=lambda e: page.go(
-                              f"/businesses/{business_id}/products")),
-                ft.Container(height=5),
-                menu_item(ft.Icons.RECEIPT_LONG_OUTLINED,
-                          "Sales & Billing",
-                          on_click=lambda e: page.go(
-                              f"/businesses/{business_id}/sales")),
-                ft.Container(height=5),
-                menu_item(ft.Icons.CREDIT_CARD_OUTLINED,
-                          "EMI Management",
-                          on_click=lambda e: page.go(
-                              f"/businesses/{business_id}/emi")),
-                ft.Container(expand=True),
-                ft.Divider(color="#171b29", height=1),
-                ft.Container(height=14),
-                ft.Container(
-                    height=74,
-                    padding=14,
-                    border_radius=12,
-                    border=ft.border.all(1, "#1a2130"),
-                    content=ft.Row(
-                        spacing=13,
-                        controls=[
-                            ft.Container(
-                                width=40, height=40,
-                                border_radius=20,
-                                border=ft.border.all(1, "#6e42e8"),
-                                alignment=ft.Alignment(0, 0),
-                                content=user_initials,
-                            ),
-                            ft.Container(
-                                width=150,
-                                content=ft.Column(
-                                    alignment=ft.MainAxisAlignment.CENTER,
-                                    spacing=3,
-                                    controls=[user_name, user_email],
-                                ),
-                            ),
-                        ],
-                    ),
-                ),
-                ft.Container(height=12),
-                ft.Container(
-                    height=40,
-                    border_radius=8,
-                    border=ft.border.all(1, "#251220"),
-                    alignment=ft.Alignment(0, 0),
-                    on_click=logout,
-                    ink=True,
-                    content=ft.Text("SIGN OUT SESSION", color="#8f294d",
-                                    size=9, weight=ft.FontWeight.BOLD),
-                ),
-            ],
-        ),
-    )
 
     # ── Main content ──────────────────────────────────────────────
     main_content = ft.Container(

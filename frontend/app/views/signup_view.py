@@ -10,6 +10,9 @@ def SignupView(page: ft.Page):
     def go_to_login(e):
         page.go("/login")
 
+    def go_to_home(e):
+        page.go("/")
+
     def field_style():
         return ft.TextStyle(
             color=Colors.TEXT_SECONDARY,
@@ -156,6 +159,7 @@ def SignupView(page: ft.Page):
             data, status_code = api_client.send_otp(
                 email=values["email"],
                 purpose="signup",
+                phone=values["phone"],
             )
         except Exception:
             error_text.value = "Unable to connect to the server"
@@ -265,13 +269,54 @@ def SignupView(page: ft.Page):
         route="/signup",
         padding=0,
         scroll=ft.ScrollMode.AUTO,
+        bgcolor="#06060c",
         controls=[
-            ft.Container(
+            ft.Stack(
                 expand=True,
-                bgcolor="#06060c",
-                alignment=ft.Alignment(0, 0),
-                padding=40,
-                content=signup_card,
+                controls=[
+                    # Background
+                    ft.Container(
+                        expand=True,
+                        bgcolor="#06060c",
+                    ),
+                    # Centered signup card
+                    ft.Container(
+                        expand=True,
+                        alignment=ft.Alignment(0, 0),
+                        padding=40,
+                        content=signup_card,
+                    ),
+                    # Back button — top left
+                    ft.Container(
+                        left=24,
+                        top=24,
+                        content=ft.Container(
+                            height=38,
+                            padding=ft.padding.symmetric(horizontal=14),
+                            border_radius=8,
+                            border=ft.border.all(1, "#172231"),
+                            ink=True,
+                            on_click=go_to_home,
+                            content=ft.Row(
+                                tight=True,
+                                spacing=8,
+                                controls=[
+                                    ft.Icon(
+                                        ft.Icons.ARROW_BACK_ROUNDED,
+                                        color="#657188",
+                                        size=16,
+                                    ),
+                                    ft.Text(
+                                        "BACK",
+                                        color="#657188",
+                                        size=9,
+                                        weight=ft.FontWeight.BOLD,
+                                    ),
+                                ],
+                            ),
+                        ),
+                    ),
+                ],
             )
         ],
     )

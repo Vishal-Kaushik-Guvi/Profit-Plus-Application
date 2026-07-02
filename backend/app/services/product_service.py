@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
+from app.models.inventory import Inventory
 from app.models.product import Product
 from app.schemas.product import ProductCreateRequest, ProductUpdateRequest
 from app.models.user import User
@@ -11,6 +12,11 @@ def create_product(request: ProductCreateRequest, current_user: User, db: Sessio
         owner_id=current_user.id
     )
     db.add(new_product)
+    db.flush()
+    db.add(Inventory(
+        business_id=new_product.business_id,
+        product_id=new_product.id,
+    ))
     db.commit()
     db.refresh(new_product)
     return new_product
@@ -44,6 +50,7 @@ def update_product(product_id: str, request: ProductUpdateRequest, current_user:
 
 def delete_product(product_id: str, current_user: User, db: Session):
     product = get_product_by_id(product_id, current_user, db)
+    db.query(Inventory).filter(Inventory.product_id == product.id).delete()
     db.delete(product)
     db.commit()
     return {"message": "Product deleted successfully"}

@@ -47,3 +47,20 @@ class InventoryResponse(InventoryBase):
 
     class Config:
         from_attributes = True
+        
+
+class ProductInfo(BaseModel):
+    id: UUID4
+    product_name: str
+    brand: Optional[str] = None
+    category: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class InventoryWithProductResponse(InventoryResponse):
+    product: Optional[ProductInfo] = None
+
+    class Config:
+        from_attributes = True
